@@ -77,4 +77,148 @@ export const SMOKESCREEN_THEMES: Theme[] = [
     ["Understood. Sorry to bother you. Have a good day.", "Absolutely. I'll make a note so no one knocks again.", "You got it. Thanks for your time."], 'done', 'the refusal', 'to be left alone', { refusal: true, contexts: 'none' }),
 ];
 
-export const cards = buildCategory({ category: 'smokescreens', prefix: 's', core: coreSmokescreens, themes: SMOKESCREEN_THEMES, contexts: TIMING, target: CARDS_PER_CATEGORY });
+// Each situation is only paired with homeowner details that read naturally with it.
+const ALLOW: Record<string, string[]> = {
+ 'busy': [
+  'dog',
+  'meeting',
+  'practice',
+  'lunch',
+  'stove',
+  'delivery',
+  'contractor-here',
+  'zoom',
+  'pickup',
+  'long-day',
+  'eating',
+  'baby'
+ ],
+ 'come-back': [
+  'just-home',
+  'pajamas',
+  'game',
+  'practice',
+  'nap',
+  'visitor',
+  'vacation',
+  'long-day',
+  'eating',
+  'heat'
+ ],
+ 'flyer': [
+  'dog',
+  'meeting',
+  'zoom',
+  'baby',
+  'pickup',
+  'stove',
+  'heat',
+  'pajamas'
+ ],
+ 'send-info': [
+  'zoom',
+  'meeting',
+  'lunch',
+  'pickup',
+  'vacation',
+  'long-day'
+ ],
+ 'call-you': [
+  'dog',
+  'baby',
+  'stove',
+  'pickup',
+  'meeting',
+  'game'
+ ],
+ 'think': [
+  'long-day',
+  'vacation',
+  'just-home'
+ ],
+ 'spouse': [
+  'practice',
+  'pickup',
+  'baby',
+  'visitor'
+ ],
+ 'leaving': [
+  'meeting',
+  'lunch',
+  'practice',
+  'delivery'
+ ],
+ 'talked': [
+  'just-home',
+  'long-day'
+ ],
+ 'no-door-decisions': [
+  'pajamas',
+  'long-day',
+  'heat'
+ ],
+ 'cooking': [
+  'baby',
+  'practice',
+  'visitor',
+  'game',
+  'long-day',
+  'just-home'
+ ],
+ 'working': [
+  'dog',
+  'delivery',
+  'baby',
+  'long-day'
+ ],
+ 'guests': [
+  'game',
+  'stove',
+  'eating',
+  'heat'
+ ],
+ 'research': [
+  'long-day',
+  'vacation',
+  'meeting'
+ ],
+ 'later': [
+  'vacation',
+  'practice',
+  'visitor',
+  'long-day',
+  'contractor-here'
+ ],
+ 'decision-maker': [
+  'dog',
+  'baby',
+  'visitor'
+ ],
+ 'moving': [
+  'contractor-here',
+  'vacation',
+  'long-day'
+ ],
+ 'not-ready': [
+  'vacation',
+  'contractor-here',
+  'long-day',
+  'visitor'
+ ],
+ 'text': [
+  'zoom',
+  'meeting',
+  'baby',
+  'dog',
+  'pickup',
+  'lunch'
+ ],
+ 'website': [
+  'zoom',
+  'meeting',
+  'pickup',
+  'stove'
+ ]
+};
+
+export const cards = buildCategory({ category: 'smokescreens', prefix: 's', core: coreSmokescreens, themes: SMOKESCREEN_THEMES, contexts: TIMING, target: CARDS_PER_CATEGORY, allow: ALLOW });

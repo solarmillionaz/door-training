@@ -185,4 +185,189 @@ export const OBJECTION_THEMES: Theme[] = [
   'not the decision-maker', 'renting', 'a quick, polite exit', { contexts: 'none' }),
 ];
 
-export const cards = buildCategory({ category: 'objections', prefix: 'o', core: coreObjections, themes: OBJECTION_THEMES, contexts: HOUSEHOLD, target: CARDS_PER_CATEGORY });
+// Each situation is only paired with homeowner details that read naturally with it.
+const ALLOW: Record<string, string[]> = {
+ 'not-interested': [
+  'recent-rep',
+  'retired',
+  'kids',
+  'neighbor'
+ ],
+ 'have-solar': [
+  'bill-high',
+  'bill-swing',
+  'pool',
+  'ev',
+  'tou',
+  'srp',
+  'aps'
+ ],
+ 'another-bill': [
+  'fixed-income',
+  'tight',
+  'retired',
+  'kids',
+  'refi',
+  'bill-high'
+ ],
+ 'no-loan': [
+  'refi',
+  'retired',
+  'fixed-income',
+  'tight',
+  'long-time'
+ ],
+ 'expensive': [
+  'fixed-income',
+  'tight',
+  'retired',
+  'kids',
+  'refi',
+  'recent-rep',
+  'neighbor'
+ ],
+ 'trust': [
+  'reviews',
+  'recent-rep',
+  'neighbor',
+  'relative-sells',
+  'retired'
+ ],
+ 'roof-damage': [
+  'roof-new',
+  'roof-15',
+  'long-time',
+  'contractor',
+  'hoa'
+ ],
+ 'wont-save': [
+  'neighbor',
+  'reviews',
+  'bill-swing',
+  'tou',
+  'srp',
+  'aps',
+  'tep'
+ ],
+ 'bad-experience': [
+  'reviews',
+  'recent-rep',
+  'long-time',
+  'retired'
+ ],
+ 'long-term': [
+  'retired',
+  'downsize',
+  'new-home',
+  'long-time'
+ ],
+ 'dont-believe': [
+  'neighbor',
+  'relative-sells',
+  'contractor',
+  'long-time'
+ ],
+ 'selling': [
+  'downsize',
+  'new-home',
+  'kids',
+  'parents',
+  'retired'
+ ],
+ 'monthly': [
+  'fixed-income',
+  'tight',
+  'retired',
+  'refi',
+  'kids'
+ ],
+ 'scam': [
+  'reviews',
+  'recent-rep',
+  'retired',
+  'neighbor'
+ ],
+ 'happy-utility': [
+  'long-time',
+  'retired',
+  'bill-swing',
+  'new-home'
+ ],
+ 'bill-low': [
+  'retired',
+  'new-home',
+  'long-time'
+ ],
+ 'wait-tech': [
+  'ev',
+  'contractor',
+  'new-home',
+  'relative-sells',
+  'neighbor'
+ ],
+ 'ugly': [
+  'hoa',
+  'long-time',
+  'new-home',
+  'roof-new',
+  'spouse-decides'
+ ],
+ 'quotes': [
+  'recent-rep',
+  'relative-sells',
+  'contractor',
+  'neighbor',
+  'reviews'
+ ],
+ 'hoa': [
+  'new-home',
+  'long-time',
+  'roof-new',
+  'retired'
+ ],
+ 'too-old': [
+  'retired',
+  'long-time',
+  'fixed-income',
+  'parents'
+ ],
+ 'roof-old': [
+  'long-time',
+  'tight',
+  'fixed-income',
+  'hoa'
+ ],
+ 'shade': [
+  'hoa',
+  'long-time',
+  'new-home',
+  'neighbor'
+ ],
+ 'credit': [
+  'refi',
+  'tight',
+  'new-home',
+  'retired'
+ ],
+ 'cash-later': [
+  'contractor',
+  'relative-sells',
+  'neighbor',
+  'long-time'
+ ],
+ 'rates': [
+  'aps',
+  'srp',
+  'tep',
+  'long-time',
+  'retired'
+ ],
+ 'fatigue': [
+  'recent-rep',
+  'kids',
+  'wfh',
+  'retired'
+ ]
+};
+
+export const cards = buildCategory({ category: 'objections', prefix: 'o', core: coreObjections, themes: OBJECTION_THEMES, contexts: HOUSEHOLD, target: CARDS_PER_CATEGORY, allow: ALLOW });

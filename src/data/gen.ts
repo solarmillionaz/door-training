@@ -16,6 +16,8 @@ export interface Theme {
   /** 'none' = never add a context (e.g. clear refusals). */
   contexts?: 'all' | 'none';
   exclude?: string[]; // context tags that don't fit this theme
+  /** Only these context tags are paired with this theme (chosen so the combined line reads naturally). */
+  allow?: string[];
   refusal?: boolean;
 }
 
@@ -92,7 +94,8 @@ const MAX_SIMILARITY = 0.7;
 
 interface BuildOpts { category: CategoryId; prefix: string; core: Card[]; themes: Theme[]; contexts: Context[]; target: number }
 
-export function buildCategory({ category, prefix, core, themes, contexts, target }: BuildOpts): Card[] {
+export function buildCategory({ category, prefix, core, themes, contexts, target, allow }: BuildOpts & { allow?: Record<string, string[]> }): Card[] {
+  if (allow) themes.forEach((t) => { if (allow[t.key]) t.allow = allow[t.key]; });
   const out: Card[] = [];
   const seen = new Set<string>();
   let n = 0;
@@ -123,14 +126,16 @@ export function buildCategory({ category, prefix, core, themes, contexts, target
 
   // 1) every base phrasing
   themes.forEach((th) => th.phrasings.forEach((_, pi) => push(make(th, pi, null, 0))));
-  // 2) phrasing + homeowner context, round-robin so contexts spread evenly
+  // 2) phrasing + a homeowner detail that fits this situation (theme.allow), spread round-robin
   const byCtx = new Map<string, string[]>();
-  const pool = themes.filter((t) => t.contexts !== 'none' && !t.refusal);
-  for (let round = 0; out.length < target && round < contexts.length; round++) {
-    pool.forEach((th, ti) => th.phrasings.forEach((_, pi) => {
-      if (out.length >= target) return;
-      const ctx = contexts[(ti * 7 + pi * 3 + round) % contexts.length];
-      if (th.exclude?.includes(ctx.tag)) return;
+  const ctxByTag = new Map(contexts.map((c) => [c.tag, c]));
+  const pool = themes.filter((t) => t.contexts !== 'none' && !t.refusal && t.allow?.length);
+  const maxRounds = Math.max(0, ...pool.map((t) => t.allow!.length));
+  for (let round = 0; out.length < target && round < maxRounds; round++) {
+    pool.forEach((th) => th.phrasings.forEach((_, pi) => {
+      if (out.length >= target || round >= th.allow!.length) return;
+      const ctx = ctxByTag.get(th.allow![(pi + round) % th.allow!.length]);
+      if (!ctx || th.exclude?.includes(ctx.tag)) return;
       const card = make(th, pi, ctx, round + 1);
       if (jaccard(th.phrasings[pi], card.statement) >= MAX_SIMILARITY) return;
       const same = byCtx.get(ctx.tag) ?? [];

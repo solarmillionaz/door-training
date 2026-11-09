@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { CATEGORIES, CARDS_PER_CATEGORY, type Card, type CategoryId } from './data/types';
+import { CATEGORIES, CARD_COUNTS, TOTAL_CARDS, type Card, type CategoryId } from './data/types';
 import { loadCards, peekCards } from './data/loader';
 import { COACHES, COACH_DISCLAIMER, COACH_LIST, type CoachId } from './data/coaches';
 import { Deck, shuffle } from './lib/deck';
@@ -219,8 +219,8 @@ function AddToHome({ compact = false }: { compact?: boolean }) {
 
 function CategoryPicker({ cat, onPick, back }: { cat: Cat; onPick: (c: Cat) => void; back: () => void }) {
   const opts: { id: Cat; label: string; blurb: string; icon: string; n: number }[] = [
-    ...CATEGORIES.map((c) => ({ id: c.id as Cat, label: c.label, blurb: c.blurb, icon: c.icon, n: CARDS_PER_CATEGORY })),
-    { id: 'all', label: 'Mixed', blurb: 'Every card from all three decks.', icon: '🎲', n: CARDS_PER_CATEGORY * 3 },
+    ...CATEGORIES.map((c) => ({ id: c.id as Cat, label: c.label, blurb: c.blurb, icon: c.icon, n: CARD_COUNTS[c.id] })),
+    { id: 'all', label: 'Mixed', blurb: 'Every card from all three decks.', icon: '🎲', n: TOTAL_CARDS },
   ];
   return (
     <Shell onBack={back} title="Choose Category">

@@ -127,4 +127,192 @@ export const CONCERN_THEMES: Theme[] = [
     'wanting clarity', 'ownership', 'clear ownership terms'),
 ];
 
-export const cards = buildCategory({ category: 'concerns', prefix: 'c', core: coreConcerns, themes: CONCERN_THEMES, contexts: HOUSEHOLD, target: CARDS_PER_CATEGORY });
+// Each situation is only paired with homeowner details that read naturally with it.
+const ALLOW: Record<string, string[]> = {
+ 'breaks': [
+  'contractor',
+  'long-time',
+  'retired',
+  'reviews',
+  'neighbor'
+ ],
+ 'outage': [
+  'parents',
+  'kids',
+  'wfh',
+  'pool',
+  'ev',
+  'retired'
+ ],
+ 'battery-care': [
+  'retired',
+  'contractor',
+  'kids',
+  'ev'
+ ],
+ 'utility-bill': [
+  'tou',
+  'bill-high',
+  'retired',
+  'new-home'
+ ],
+ 'roof-repair': [
+  'roof-15',
+  'roof-new',
+  'long-time',
+  'hoa'
+ ],
+ 'move': [
+  'downsize',
+  'new-home',
+  'kids',
+  'retired'
+ ],
+ 'taxes': [
+  'retired',
+  'fixed-income',
+  'long-time',
+  'new-home'
+ ],
+ 'install-time': [
+  'wfh',
+  'kids',
+  'parents',
+  'new-home',
+  'pool'
+ ],
+ 'credit-req': [
+  'refi',
+  'tight',
+  'new-home',
+  'retired'
+ ],
+ 'insurance': [
+  'roof-new',
+  'long-time',
+  'new-home',
+  'retired'
+ ],
+ 'add-battery': [
+  'ev',
+  'wfh',
+  'tou',
+  'srp',
+  'aps'
+ ],
+ 'underproduce': [
+  'trees',
+  'neighbor',
+  'reviews',
+  'contractor'
+ ],
+ 'affiliated': [
+  'retired',
+  'reviews',
+  'recent-rep'
+ ],
+ 'roof-eligible': [
+  'roof-15',
+  'roof-new',
+  'trees',
+  'hoa',
+  'long-time'
+ ],
+ 'end-term': [
+  'retired',
+  'downsize',
+  'kids',
+  'long-time'
+ ],
+ 'monsoon': [
+  'roof-new',
+  'long-time',
+  'new-home',
+  'trees'
+ ],
+ 'dust': [
+  'retired',
+  'pool',
+  'trees',
+  'hoa'
+ ],
+ 'net-metering': [
+  'wfh',
+  'tou',
+  'ev',
+  'pool'
+ ],
+ 'legit': [
+  'reviews',
+  'recent-rep',
+  'retired',
+  'relative-sells'
+ ],
+ 'equipment': [
+  'contractor',
+  'relative-sells',
+  'neighbor',
+  'reviews'
+ ],
+ 'demand': [
+  'tou',
+  'wfh',
+  'ev',
+  'pool',
+  'ac-74'
+ ],
+ 'tax-credit': [
+  'retired',
+  'fixed-income',
+  'refi',
+  'new-home'
+ ],
+ 'home-install': [
+  'wfh',
+  'kids',
+  'parents',
+  'retired'
+ ],
+ 'service-area': [
+  'new-home',
+  'long-time'
+ ],
+ 'support': [
+  'retired',
+  'reviews',
+  'neighbor',
+  'parents'
+ ],
+ 'see-contract': [
+  'retired',
+  'parents',
+  'contractor',
+  'fixed-income'
+ ],
+ 'how-much-save': [
+  'bill-high',
+  'pool',
+  'ev',
+  'ac-74',
+  'tou',
+  'aps',
+  'srp',
+  'tep',
+  'bill-swing'
+ ],
+ 'battery-peak': [
+  'ac-74',
+  'tou',
+  'wfh',
+  'parents',
+  'ev'
+ ],
+ 'ownership': [
+  'retired',
+  'downsize',
+  'new-home',
+  'refi'
+ ]
+};
+
+export const cards = buildCategory({ category: 'concerns', prefix: 'c', core: coreConcerns, themes: CONCERN_THEMES, contexts: HOUSEHOLD, target: CARDS_PER_CATEGORY, allow: ALLOW });

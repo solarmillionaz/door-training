@@ -7,7 +7,11 @@ import { cards as OBJ } from '../data/objections';
 import { cards as SMK } from '../data/smokescreens';
 import { cards as CON } from '../data/concerns';
 import { normalize } from '../data/gen';
-import type { Card } from '../data/types';
+import { CARD_COUNTS, type Card } from '../data/types';
+import { HOUSEHOLD, TIMING } from '../data/contexts';
+import { OBJECTION_THEMES } from '../data/objections';
+import { SMOKESCREEN_THEMES } from '../data/smokescreens';
+import { CONCERN_THEMES } from '../data/concerns';
 const BY: Record<string, Card[]> = { objections: OBJ, smokescreens: SMK, concerns: CON, all: [...OBJ, ...SMK, ...CON] };
 const CARDS = BY.all;
 const cardsFor = (c: string) => BY[c];
@@ -116,9 +120,10 @@ describe('leaderboard', () => {
 });
 
 describe('card data', () => {
-  it('has at least 1,000 cards per category with all fields and a valid coach', () => {
+  it('has at least 500 cards per category (counts match CARD_COUNTS) with all fields and a valid coach', () => {
     for (const cat of ['objections', 'smokescreens', 'concerns'] as const) {
-      expect(cardsFor(cat).length).toBeGreaterThanOrEqual(1000);
+      expect(cardsFor(cat).length).toBeGreaterThanOrEqual(500);
+      expect(cardsFor(cat).length).toBe(CARD_COUNTS[cat]);
       expect(cardsFor(cat).every((c) => c.category === cat)).toBe(true);
     }
     const ids = new Set<string>();
@@ -147,6 +152,11 @@ describe('card data', () => {
       }
       expect(worst).toBeLessThan(0.85);
     }
+  });
+  it('every theme pairs only with real, matching homeowner details', () => {
+    const h = new Set(HOUSEHOLD.map((c) => c.tag)), t = new Set(TIMING.map((c) => c.tag));
+    for (const th of [...OBJECTION_THEMES, ...CONCERN_THEMES]) (th.allow ?? []).forEach((tag) => expect(h.has(tag), `${th.key}:${tag}`).toBe(true));
+    for (const th of SMOKESCREEN_THEMES) (th.allow ?? []).forEach((tag) => expect(t.has(tag), `${th.key}:${tag}`).toBe(true));
   });
   it('spreads coaching across all 11 coaches', () => {
     expect(new Set(CARDS.map((c) => c.coach)).size).toBe(11);
