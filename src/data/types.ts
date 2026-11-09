@@ -21,8 +21,6 @@ export const CATEGORIES: { id: CategoryId; label: string; short: string; blurb: 
 ];
 
 
-/** Upper limit per category; the generator stops here. */
-export const CARDS_PER_CATEGORY = 1000;
 /** Actual card counts (kept in sync by a unit test) so the menu can show them without loading the decks. */
-export const CARD_COUNTS: Record<CategoryId, number> = { objections: 751, smokescreens: 635, concerns: 734 };
+export const CARD_COUNTS: Record<CategoryId, number> = { objections: 533, smokescreens: 542, concerns: 513 };
 export const TOTAL_CARDS = CARD_COUNTS.objections + CARD_COUNTS.smokescreens + CARD_COUNTS.concerns;

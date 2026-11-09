@@ -1,7 +1,6 @@
 import { buildCategory, type Theme } from './gen';
-import { TIMING } from './contexts';
+import { SMOKESCREEN_LINES } from './lines/smokescreens';
 import { coreSmokescreens } from './core';
-import { CARDS_PER_CATEGORY } from './types';
 
 const SMOKE = 'Smokescreen';
 const POSS = 'Possible smokescreen';
@@ -35,7 +34,7 @@ export const SMOKESCREEN_THEMES: Theme[] = [
     ["That's important. We always want both of you there. What evening works for you both?", "Absolutely. Let's set a time when you are both home."], 'not wanting to decide alone', 'the other decision-maker', 'both decision-makers together'),
   th('leaving', TIMING_C, ["I'm walking out the door.", "I'm on my way out.", "I've got to run.", "I'm late already.", "We're heading out."],
     'Probably true.', ["No worries. When's a better time?", 'Want me to swing back later?'],
-    ["Go ahead! When should I come back?", "I won't hold you up. Is tomorrow better?"], 'in a rush', 'leaving', 'a better time', { exclude: ['church','pickup'] }),
+    ["Go ahead! When should I come back?", "I won't hold you up. Is tomorrow better?"], 'in a rush', 'leaving', 'a better time'),
   th('talked', POSS, ["We already talked to a solar company.", "Somebody already came by.", "We had a consultation last month.", "Another company already gave us a quote.", "We've heard the pitch."],
     'Could have a quote, or got burned by a pushy rep.', ['Oh nice. How did that go?', 'What did you think of what they showed you?'],
     ["Got it. What did you like, and what didn't sit right?", "Okay! Did you end up moving forward, or did something hold you back?"], 'already pitched', 'the earlier pitch', 'a clear comparison'),
@@ -44,13 +43,13 @@ export const SMOKESCREEN_THEMES: Theme[] = [
     ["You shouldn't! Nobody makes a decision today. I'm only seeing if it's worth setting a time.", "Agreed. Nothing gets decided here. We'd just set a time to look at details."], 'worried about pressure', 'deciding at the door', 'no pressure'),
   th('cooking', TIMING_C, ["I'm in the middle of cooking.", "I've got food in the oven.", "I'm making dinner.", "Dinner's almost ready.", "I'm cooking for the family."],
     'Probably true; act accordingly.', ['Is later tonight or tomorrow better?', 'When should I come back?'],
-    ["I won't keep you! When's better?", "Enjoy dinner! I'll come back another time."], 'busy with family', 'dinner', 'respect for their evening', { exclude: ['stove','eating'] }),
+    ["I won't keep you! When's better?", "Enjoy dinner! I'll come back another time."], 'busy with family', 'dinner', 'respect for their evening'),
   th('working', TIMING_C, ["I'm working.", "I'm on the clock.", "I work from home and I'm busy.", "I'm in the middle of work.", "I've got deadlines today."],
     'Working from home; a real constraint.', ['When do you usually wrap up?', 'Is the weekend better?'],
-    ["Sorry for interrupting! When's your day usually done?", "Got it. I'll swing by after work hours."], 'focused on work', 'their workday', 'a time after work', { exclude: ['zoom','meeting','lunch'] }),
+    ["Sorry for interrupting! When's your day usually done?", "Got it. I'll swing by after work hours."], 'focused on work', 'their workday', 'a time after work'),
   th('guests', TIMING_C, ["We have company.", "We've got people over.", "We're hosting tonight.", "Family's in town.", "We're having a party."],
     'Real timing issue.', ['Would tomorrow evening work better?', 'What day is calmer?'],
-    ["Enjoy your company! I'll come back another time.", "No worries at all. Have fun!"], 'hosting', 'their guests', 'a calmer day', { exclude: ['visitor'] }),
+    ["Enjoy your company! I'll come back another time.", "No worries at all. Have fun!"], 'hosting', 'their guests', 'a calmer day'),
   th('research', POSS, ["I want to look into it first.", "I'll do my homework.", "I need to read up on it.", "Let me check some reviews.", "I'll google it."],
     'Wants to verify, or a soft exit.', ['Great. What would you look up first?', 'What would you want to verify?'],
     ["Smart. What specifically do you want to research? I can make sure you get accurate info.", "Love it. Check licensing and reviews. What else would you look for?"], 'wanting to verify', 'their research', 'trustworthy facts'),
@@ -72,153 +71,18 @@ export const SMOKESCREEN_THEMES: Theme[] = [
   th('website', POSS, ["Do you have a website?", "Where can I look you up?", "What's the company name again?", "Are you guys online?", "Got a website I can check?"],
     "Wants to verify you're legit, or a brush-off.", ['Sure. What would you want to check?', 'What would you look for, reviews or licensing?'],
     ["Of course. What would you look for: reviews, licensing?", "Absolutely. Check us out, and ask me anything that comes up."], 'cautious', 'legitimacy', 'proof you are legit'),
+  th('sick', TIMING_C, ["We're not feeling well.", "Somebody's sick here."],
+    'Probably true. Nobody wants a pitch when they feel awful.', ['Oh no, feel better. Is next week okay to swing back?', 'Want me to leave a card and check back when you are better?'],
+    ["Oh man, I'm sorry. Feel better. I'll leave a card and check back another week.", "No worries at all. Rest up. Is next week okay?"], 'unwell', 'the timing', 'to be left alone until they feel better'),
+  th('language', POSS, ["I don't speak much English."],
+    'A real language barrier, or an easy way out. Either way, they deserve to understand everything clearly.', ['¿Prefiere en español? (Would you prefer Spanish?)', 'Is there a time a family member who speaks English would be home?'],
+    ["No problem. We can have someone who speaks Spanish come by, if you want. Is that okay?", "Totally fine. When is someone home who can help translate?"], 'unsure they will understand', 'the language', 'everything explained clearly in their language'),
+  th('not-dressed', TIMING_C, ["You caught me at a bad moment."],
+    'True, and awkward. Make it easy for them.', ['No worries. Is later today better?', 'Want me to come back in an hour?'],
+    ["Oh, sorry about that! I'll swing back later. Is this evening okay?", "No problem at all. I'll leave a card and check back."], 'caught off guard', 'the timing', 'a better moment'),
   th('refusal', REFUSAL, ["Please don't knock here again.", "We don't talk to salespeople, goodbye.", "Read the sign. No soliciting.", "I'm not interested, please leave.", "Remove us from your list.", "We said no last time.", "Stop knocking on our door.", "Please go away.", "Don't ever come back.", "I'm calling the HOA if you don't leave.", "No thank you. Goodbye.", "We've asked you people to stop.", "Put us on your do-not-knock list.", "I'm not opening the door. Go away.", "Not now, not ever.", "Leave. Now.", "Please respect the sign.", "Don't bother us.", "We are not interested in any way.", "This conversation is over."],
     'A clear request not to be contacted. Respect it.', ['None. Do not ask.'],
-    ["Understood. Sorry to bother you. Have a good day.", "Absolutely. I'll make a note so no one knocks again.", "You got it. Thanks for your time."], 'done', 'the refusal', 'to be left alone', { refusal: true, contexts: 'none' }),
+    ["Understood. Sorry to bother you. Have a good day.", "Absolutely. I'll make a note so no one knocks again.", "You got it. Thanks for your time."], 'done', 'the refusal', 'to be left alone', { refusal: true }),
 ];
 
-// Each situation is only paired with homeowner details that read naturally with it.
-const ALLOW: Record<string, string[]> = {
- 'busy': [
-  'dog',
-  'meeting',
-  'practice',
-  'lunch',
-  'stove',
-  'delivery',
-  'contractor-here',
-  'zoom',
-  'pickup',
-  'long-day',
-  'eating',
-  'baby'
- ],
- 'come-back': [
-  'just-home',
-  'pajamas',
-  'game',
-  'practice',
-  'nap',
-  'visitor',
-  'vacation',
-  'long-day',
-  'eating',
-  'heat'
- ],
- 'flyer': [
-  'dog',
-  'meeting',
-  'zoom',
-  'baby',
-  'pickup',
-  'stove',
-  'heat',
-  'pajamas'
- ],
- 'send-info': [
-  'zoom',
-  'meeting',
-  'lunch',
-  'pickup',
-  'vacation',
-  'long-day'
- ],
- 'call-you': [
-  'dog',
-  'baby',
-  'stove',
-  'pickup',
-  'meeting',
-  'game'
- ],
- 'think': [
-  'long-day',
-  'vacation',
-  'just-home'
- ],
- 'spouse': [
-  'practice',
-  'pickup',
-  'baby',
-  'visitor'
- ],
- 'leaving': [
-  'meeting',
-  'lunch',
-  'practice',
-  'delivery'
- ],
- 'talked': [
-  'just-home',
-  'long-day'
- ],
- 'no-door-decisions': [
-  'pajamas',
-  'long-day',
-  'heat'
- ],
- 'cooking': [
-  'baby',
-  'practice',
-  'visitor',
-  'game',
-  'long-day',
-  'just-home'
- ],
- 'working': [
-  'dog',
-  'delivery',
-  'baby',
-  'long-day'
- ],
- 'guests': [
-  'game',
-  'stove',
-  'eating',
-  'heat'
- ],
- 'research': [
-  'long-day',
-  'vacation',
-  'meeting'
- ],
- 'later': [
-  'vacation',
-  'practice',
-  'visitor',
-  'long-day',
-  'contractor-here'
- ],
- 'decision-maker': [
-  'dog',
-  'baby',
-  'visitor'
- ],
- 'moving': [
-  'contractor-here',
-  'vacation',
-  'long-day'
- ],
- 'not-ready': [
-  'vacation',
-  'contractor-here',
-  'long-day',
-  'visitor'
- ],
- 'text': [
-  'zoom',
-  'meeting',
-  'baby',
-  'dog',
-  'pickup',
-  'lunch'
- ],
- 'website': [
-  'zoom',
-  'meeting',
-  'pickup',
-  'stove'
- ]
-};
-
-export const cards = buildCategory({ category: 'smokescreens', prefix: 's', core: coreSmokescreens, themes: SMOKESCREEN_THEMES, contexts: TIMING, target: CARDS_PER_CATEGORY, allow: ALLOW });
+export const cards = buildCategory({ category: 'smokescreens', prefix: 's', core: coreSmokescreens, themes: SMOKESCREEN_THEMES, lines: SMOKESCREEN_LINES });

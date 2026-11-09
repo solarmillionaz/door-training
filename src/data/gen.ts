@@ -13,16 +13,8 @@ export interface Theme {
   feeling: string; // "worried about the cost"
   topic: string; // "the cost"
   need: string; // "a predictable bill"
-  /** 'none' = never add a context (e.g. clear refusals). */
-  contexts?: 'all' | 'none';
-  exclude?: string[]; // context tags that don't fit this theme
-  /** Only these context tags are paired with this theme (chosen so the combined line reads naturally). */
-  allow?: string[];
   refusal?: boolean;
 }
-
-/** Extra homeowner detail appended to a statement, plus a matching line for the rep's response. */
-export interface Context { tag: string; say: string; reply: string; hint: string }
 
 const COACH_ORDER: CoachId[] = ['mccarthy', 'voss', 'taggart', 'miner', 'cardone', 'ziglar', 'rackham', 'belfort', 'carnegie', 'tracy', 'elliott'];
 
@@ -82,66 +74,75 @@ const REFUSAL_TIPS: [CoachId, string][] = [
   ['elliott', 'Confidence includes knowing when to leave. Smile, say thank you, and take your energy to the next door.'],
 ];
 
-export const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9$ ]/g, ' ').replace(/\s+/g, ' ').trim();
+export const normalize = (s: string) =>
+  s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[’']/g, '').replace(/[^a-z0-9$ ]/g, ' ').replace(/\s+/g, ' ').trim();
 
+/** Filler words ignored by the near-duplicate check (negations are kept on purpose: "not" changes meaning). */
+const STOP = new Set(('a an the and or but so to of in on at for with from by is are was were be been am i im me my we us our you your yall '
+  + 'it its this that these those just do does did have has had will would can could should gonna wanna got get gotta '
+  + 'he she him her his they them their there here what whats who how when where why if then than too also really '
+  + 'oh hey uh um well yeah ok okay man bro sir maam like very some any all about up out as y el la los las de que un una es en me mi lo se').split(' '));
+
+export const contentWords = (s: string): Set<string> => {
+  const all = normalize(s).split(' ').filter(Boolean);
+  const cw = all.filter((w) => !STOP.has(w));
+  return new Set(cw.length ? cw : all);
+};
+
+/** Jaccard overlap of content words (0..1). */
 export function jaccard(a: string, b: string): number {
-  const A = new Set(normalize(a).split(' ')), B = new Set(normalize(b).split(' '));
+  const A = contentWords(a), B = contentWords(b);
   let inter = 0; A.forEach((w) => { if (B.has(w)) inter++; });
-  return inter / (A.size + B.size - inter);
+  const u = A.size + B.size - inter;
+  return u ? inter / u : 1;
 }
-/** A context must change a statement enough that it reads as a different situation. */
-const MAX_SIMILARITY = 0.7;
+/** Two lines this similar (or more) count as the same line. */
+export const MAX_SIMILARITY = 0.7;
+/** "Spanish line || English meaning" */
+export const SPLIT = ' || ';
 
-interface BuildOpts { category: CategoryId; prefix: string; core: Card[]; themes: Theme[]; contexts: Context[]; target: number }
+interface BuildOpts { category: CategoryId; prefix: string; core: Card[]; themes: Theme[]; lines: Record<string, string[]> }
 
-export function buildCategory({ category, prefix, core, themes, contexts, target, allow }: BuildOpts & { allow?: Record<string, string[]> }): Card[] {
-  if (allow) themes.forEach((t) => { if (allow[t.key]) t.allow = allow[t.key]; });
+/** Lines rejected as near-duplicates during the build (for review in dev). */
+export const rejected: { category: CategoryId; line: string; like: string }[] = [];
+
+export function buildCategory({ category, prefix, core, themes, lines }: BuildOpts): Card[] {
   const out: Card[] = [];
-  const seen = new Set<string>();
+  const seen: { text: string; words: Set<string> }[] = [];
   let n = 0;
   const push = (c: Omit<Card, 'id' | 'category'>) => {
-    const k = normalize(c.statement);
-    if (seen.has(k) || out.length >= target) return false;
-    seen.add(k);
+    const words = contentWords(c.statement);
+    for (const prev of seen) {
+      let inter = 0; words.forEach((w) => { if (prev.words.has(w)) inter++; });
+      const u = words.size + prev.words.size - inter;
+      if ((u ? inter / u : 1) >= MAX_SIMILARITY) { rejected.push({ category, line: c.statement, like: prev.text }); return false; }
+    }
+    seen.push({ text: c.statement, words });
     out.push({ id: `${prefix}${String(++n).padStart(4, '0')}`, category, ...c });
     return true;
   };
   core.forEach((c) => push(c));
 
-  const make = (th: Theme, pi: number, ctx: Context | null, salt: number): Omit<Card, 'id' | 'category'> => {
-    const phr = th.phrasings[pi];
-    const statement = ctx ? `${phr} ${ctx.say}` : phr;
-    const response = th.responses[(pi + salt) % th.responses.length] + (ctx && !th.refusal ? ` ${ctx.reply}` : '');
-    const question = th.questions[(pi + salt) % th.questions.length];
-    const meaning = th.meaning + (ctx && !th.refusal ? ` ${ctx.hint}` : '');
+  const make = (th: Theme, raw: string, i: number): Omit<Card, 'id' | 'category'> => {
+    const [statement, english] = raw.split(SPLIT);
+    const meaning = english ? `Spanish: "${english.trim()}". ${th.meaning}` : th.meaning;
+    const response = th.responses[i % th.responses.length];
+    const question = th.questions[i % th.questions.length];
     if (th.refusal) {
-      const [coach, tip] = REFUSAL_TIPS[(pi + salt) % REFUSAL_TIPS.length];
-      return { statement, classification: th.classification, meaning, question, response, tip, coach };
+      const [coach, tip] = REFUSAL_TIPS[i % REFUSAL_TIPS.length];
+      return { statement: statement.trim(), classification: th.classification, meaning, question, response, tip, coach };
     }
-    const coach = COACH_ORDER[(pi * 3 + salt * 5 + th.key.length) % COACH_ORDER.length];
+    const coach = COACH_ORDER[(i * 3 + th.key.length) % COACH_ORDER.length];
     const tips = TIPS[coach];
-    const tip = tips[(pi + salt) % tips.length](th);
-    return { statement, classification: th.classification, meaning, question, response, tip, coach };
+    const tip = tips[i % tips.length](th);
+    return { statement: statement.trim(), classification: th.classification, meaning, question, response, tip, coach };
   };
 
-  // 1) every base phrasing
-  themes.forEach((th) => th.phrasings.forEach((_, pi) => push(make(th, pi, null, 0))));
-  // 2) phrasing + a homeowner detail that fits this situation (theme.allow), spread round-robin
-  const byCtx = new Map<string, string[]>();
-  const ctxByTag = new Map(contexts.map((c) => [c.tag, c]));
-  const pool = themes.filter((t) => t.contexts !== 'none' && !t.refusal && t.allow?.length);
-  const maxRounds = Math.max(0, ...pool.map((t) => t.allow!.length));
-  for (let round = 0; out.length < target && round < maxRounds; round++) {
-    pool.forEach((th) => th.phrasings.forEach((_, pi) => {
-      if (out.length >= target || round >= th.allow!.length) return;
-      const ctx = ctxByTag.get(th.allow![(pi + round) % th.allow!.length]);
-      if (!ctx || th.exclude?.includes(ctx.tag)) return;
-      const card = make(th, pi, ctx, round + 1);
-      if (jaccard(th.phrasings[pi], card.statement) >= MAX_SIMILARITY) return;
-      const same = byCtx.get(ctx.tag) ?? [];
-      if (same.some((st) => jaccard(st, card.statement) >= 0.75)) return;
-      if (push(card)) { same.push(card.statement); byCtx.set(ctx.tag, same); }
-    }));
-  }
+  const unknown = Object.keys(lines).filter((k) => !themes.some((t) => t.key === k));
+  if (unknown.length) throw new Error(`${category}: lines tagged with unknown situations: ${unknown.join(', ')}`);
+  themes.forEach((th) => {
+    const all = [...th.phrasings, ...(lines[th.key] ?? [])];
+    all.forEach((raw, i) => push(make(th, raw, i)));
+  });
   return out;
 }

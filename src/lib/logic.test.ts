@@ -6,9 +6,11 @@ import { rankTeams, addRound, type TeamEntry } from './leaderboard';
 import { cards as OBJ } from '../data/objections';
 import { cards as SMK } from '../data/smokescreens';
 import { cards as CON } from '../data/concerns';
-import { normalize } from '../data/gen';
+import { normalize, contentWords, MAX_SIMILARITY } from '../data/gen';
 import { CARD_COUNTS, type Card } from '../data/types';
-import { HOUSEHOLD, TIMING } from '../data/contexts';
+import { OBJECTION_LINES } from '../data/lines/objections';
+import { SMOKESCREEN_LINES } from '../data/lines/smokescreens';
+import { CONCERN_LINES } from '../data/lines/concerns';
 import { OBJECTION_THEMES } from '../data/objections';
 import { SMOKESCREEN_THEMES } from '../data/smokescreens';
 import { CONCERN_THEMES } from '../data/concerns';
@@ -137,26 +139,43 @@ describe('card data', () => {
     const all = new Set(CARDS.map((c) => c.statement));
     for (const s of ["I'm not interested.", "I'm happy with my electric company.", 'Maybe next month.', "I don't make decisions at the door.", 'What if my roof isn\'t eligible?', 'Is the program affiliated with the utility?']) expect(all.has(s)).toBe(true);
   });
-  it('has unique statements with no near-duplicates within a category', () => {
+  it('has unique statements with no near-duplicates within a category (content words, < 70% overlap)', () => {
     for (const cat of ['objections', 'smokescreens', 'concerns'] as const) {
-      const norm = cardsFor(cat).map((c) => normalize(c.statement));
+      const list = cardsFor(cat);
+      const norm = list.map((c) => normalize(c.statement));
       expect(new Set(norm).size).toBe(norm.length);
-      const sets = norm.map((n) => new Set(n.split(' ')));
+      const sets = list.map((c) => contentWords(c.statement));
       let worst = 0;
       for (let i = 0; i < sets.length; i++) for (let j = i + 1; j < sets.length; j++) {
         const a = sets[i], b = sets[j];
         let inter = 0; a.forEach((w) => { if (b.has(w)) inter++; });
         const jac = inter / (a.size + b.size - inter);
         if (jac > worst) worst = jac;
-        if (jac >= 0.85) throw new Error(`near-duplicate in ${cat}: "${cardsFor(cat)[i].statement}" ~ "${cardsFor(cat)[j].statement}"`);
+        if (jac >= MAX_SIMILARITY) throw new Error(`near-duplicate in ${cat}: "${list[i].statement}" ~ "${list[j].statement}"`);
       }
-      expect(worst).toBeLessThan(0.85);
+      expect(worst).toBeLessThan(0.7);
     }
   });
-  it('every theme pairs only with real, matching homeowner details', () => {
-    const h = new Set(HOUSEHOLD.map((c) => c.tag)), t = new Set(TIMING.map((c) => c.tag));
-    for (const th of [...OBJECTION_THEMES, ...CONCERN_THEMES]) (th.allow ?? []).forEach((tag) => expect(h.has(tag), `${th.key}:${tag}`).toBe(true));
-    for (const th of SMOKESCREEN_THEMES) (th.allow ?? []).forEach((tag) => expect(t.has(tag), `${th.key}:${tag}`).toBe(true));
+  it('statements are short standalone spoken lines (no appended detail suffixes)', () => {
+    for (const c of CARDS) {
+      const words = c.statement.split(/\s+/).length;
+      expect(words, c.statement).toBeLessThanOrEqual(20);
+      expect(c.statement.includes('||'), c.statement).toBe(false);
+    }
+  });
+  it('has 5-10% Spanish/Spanglish lines per category, each with an English meaning', () => {
+    for (const cat of ['objections', 'smokescreens', 'concerns'] as const) {
+      const es = cardsFor(cat).filter((c) => c.meaning.startsWith('Spanish: "'));
+      const share = es.length / cardsFor(cat).length;
+      expect(share, cat).toBeGreaterThanOrEqual(0.05);
+      expect(share, cat).toBeLessThanOrEqual(0.1);
+      es.forEach((c) => expect(c.meaning).toMatch(/^Spanish: "[A-Za-z]/));
+    }
+  });
+  it('every hand-written line is tagged to a real situation', () => {
+    const check = (lines: Record<string, string[]>, themes: { key: string }[]) =>
+      Object.keys(lines).forEach((k) => expect(themes.some((t) => t.key === k), k).toBe(true));
+    check(OBJECTION_LINES, OBJECTION_THEMES); check(SMOKESCREEN_LINES, SMOKESCREEN_THEMES); check(CONCERN_LINES, CONCERN_THEMES);
   });
   it('spreads coaching across all 11 coaches', () => {
     expect(new Set(CARDS.map((c) => c.coach)).size).toBe(11);

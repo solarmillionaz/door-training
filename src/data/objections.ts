@@ -1,7 +1,6 @@
 import { buildCategory, type Theme } from './gen';
-import { HOUSEHOLD } from './contexts';
+import { OBJECTION_LINES } from './lines/objections';
 import { coreObjections } from './core';
-import { CARDS_PER_CATEGORY } from './types';
 
 const OBJ = 'Objection';
 const th = (key: string, classification: string, phrasings: string[], meaning: string, questions: string[], responses: string[], feeling: string, topic: string, need: string, extra: Partial<Theme> = {}): Theme =>
@@ -104,7 +103,7 @@ export const OBJECTION_THEMES: Theme[] = [
   ], 'Low usage may mean it is genuinely not a fit.',
   ['What does it run in July?', 'Is it low all year, or just right now?'],
   ["If it's low all year, this probably isn't for you, and that's fine.", "Then you might not need anything. If summer is different, it might be worth a look. Otherwise, you're doing great."],
-  'not feeling any pain', 'a low bill', 'confirming they are already in good shape', { exclude: ['bill-high', 'ac-74', 'pool', 'ev', 'bill-swing', 'parents'] }),
+  'not feeling any pain', 'a low bill', 'confirming they are already in good shape'),
   th('wait-tech', OBJ, [
     "Panels are getting better every year. I'll wait.", "I'll wait till the price drops.", "Next year's panels will be better.", "Batteries aren't there yet.", "I'm waiting on new technology.",
   ], 'Afraid of buying something that will soon be outdated.',
@@ -128,7 +127,7 @@ export const OBJECTION_THEMES: Theme[] = [
   ], 'They assume the HOA can block solar.',
   ['Have you checked with them, or is that what you heard?', 'What has the HOA pushed back on before?'],
   ["Arizona law generally limits HOAs from banning solar outright, though they can have design rules. The team can help with the HOA paperwork if you move forward.", "Good thing to raise. HOAs usually have design guidelines, and the paperwork is part of the process."],
-  'worried about HOA hassle', 'the HOA', 'avoiding HOA headaches', { exclude: ['hoa'] }),
+  'worried about HOA hassle', 'the HOA', 'avoiding HOA headaches'),
   th('too-old', OBJ, [
     "At my age, why bother?", "I won't be around long enough.", "I'm too old for a project like that.", "That's for younger folks.", "I'm not starting anything new at seventy.",
   ], "They think it won't benefit them in their timeframe.",
@@ -140,7 +139,7 @@ export const OBJECTION_THEMES: Theme[] = [
   ], 'They fear extra roof costs.',
   ['Roughly how old is it?', 'Have you gotten any roof quotes?'],
   ["That's exactly what the site survey checks. If the roof needs work first, you'd know before anything moves forward.", "Good call. A roof in rough shape should be handled first. The survey would tell you honestly."],
-  'worried about roof costs', 'the roof condition', 'knowing where the roof stands', { exclude: ['roof-new'] }),
+  'worried about roof costs', 'the roof condition', 'knowing where the roof stands'),
   th('shade', OBJ, [
     "We get too much shade.", "Our roof faces the wrong way.", "The neighbor's tree shades everything.", "We don't get much sun on the roof.", "Our house sits under big trees.",
   ], 'They think their roof will not produce.',
@@ -176,198 +175,13 @@ export const OBJECTION_THEMES: Theme[] = [
   ], 'This is a clear no. It is not an objection to overcome.',
   ['None. Do not ask a follow-up.'],
   ['You got it. Sorry to bother you. Have a good day.', 'Understood. Thanks for your time.', 'No problem at all. Have a good one.'],
-  'done with the conversation', 'their refusal', 'to be left alone', { refusal: true, contexts: 'none' }),
+  'done with the conversation', 'their refusal', 'to be left alone', { refusal: true }),
   th('renter', 'Objection — not qualified (homeownership)', [
     "We just rent here.", "The landlord owns the house.", "We're tenants.", "This is a rental.", "I don't own the place.", "My landlord handles that stuff.", "We lease this house.", "The owners live out of state.",
   ], "They aren't the homeowner, so they can't decide.",
   ['Got it. Do you know if the owner lives nearby?'],
   ['Thanks for letting me know! The program is for homeowners, so I will not keep you. Have a great day.'],
-  'not the decision-maker', 'renting', 'a quick, polite exit', { contexts: 'none' }),
+  'not the decision-maker', 'renting', 'a quick, polite exit'),
 ];
 
-// Each situation is only paired with homeowner details that read naturally with it.
-const ALLOW: Record<string, string[]> = {
- 'not-interested': [
-  'recent-rep',
-  'retired',
-  'kids',
-  'neighbor'
- ],
- 'have-solar': [
-  'bill-high',
-  'bill-swing',
-  'pool',
-  'ev',
-  'tou',
-  'srp',
-  'aps'
- ],
- 'another-bill': [
-  'fixed-income',
-  'tight',
-  'retired',
-  'kids',
-  'refi',
-  'bill-high'
- ],
- 'no-loan': [
-  'refi',
-  'retired',
-  'fixed-income',
-  'tight',
-  'long-time'
- ],
- 'expensive': [
-  'fixed-income',
-  'tight',
-  'retired',
-  'kids',
-  'refi',
-  'recent-rep',
-  'neighbor'
- ],
- 'trust': [
-  'reviews',
-  'recent-rep',
-  'neighbor',
-  'relative-sells',
-  'retired'
- ],
- 'roof-damage': [
-  'roof-new',
-  'roof-15',
-  'long-time',
-  'contractor',
-  'hoa'
- ],
- 'wont-save': [
-  'neighbor',
-  'reviews',
-  'bill-swing',
-  'tou',
-  'srp',
-  'aps',
-  'tep'
- ],
- 'bad-experience': [
-  'reviews',
-  'recent-rep',
-  'long-time',
-  'retired'
- ],
- 'long-term': [
-  'retired',
-  'downsize',
-  'new-home',
-  'long-time'
- ],
- 'dont-believe': [
-  'neighbor',
-  'relative-sells',
-  'contractor',
-  'long-time'
- ],
- 'selling': [
-  'downsize',
-  'new-home',
-  'kids',
-  'parents',
-  'retired'
- ],
- 'monthly': [
-  'fixed-income',
-  'tight',
-  'retired',
-  'refi',
-  'kids'
- ],
- 'scam': [
-  'reviews',
-  'recent-rep',
-  'retired',
-  'neighbor'
- ],
- 'happy-utility': [
-  'long-time',
-  'retired',
-  'bill-swing',
-  'new-home'
- ],
- 'bill-low': [
-  'retired',
-  'new-home',
-  'long-time'
- ],
- 'wait-tech': [
-  'ev',
-  'contractor',
-  'new-home',
-  'relative-sells',
-  'neighbor'
- ],
- 'ugly': [
-  'hoa',
-  'long-time',
-  'new-home',
-  'roof-new',
-  'spouse-decides'
- ],
- 'quotes': [
-  'recent-rep',
-  'relative-sells',
-  'contractor',
-  'neighbor',
-  'reviews'
- ],
- 'hoa': [
-  'new-home',
-  'long-time',
-  'roof-new',
-  'retired'
- ],
- 'too-old': [
-  'retired',
-  'long-time',
-  'fixed-income',
-  'parents'
- ],
- 'roof-old': [
-  'long-time',
-  'tight',
-  'fixed-income',
-  'hoa'
- ],
- 'shade': [
-  'hoa',
-  'long-time',
-  'new-home',
-  'neighbor'
- ],
- 'credit': [
-  'refi',
-  'tight',
-  'new-home',
-  'retired'
- ],
- 'cash-later': [
-  'contractor',
-  'relative-sells',
-  'neighbor',
-  'long-time'
- ],
- 'rates': [
-  'aps',
-  'srp',
-  'tep',
-  'long-time',
-  'retired'
- ],
- 'fatigue': [
-  'recent-rep',
-  'kids',
-  'wfh',
-  'retired'
- ]
-};
-
-export const cards = buildCategory({ category: 'objections', prefix: 'o', core: coreObjections, themes: OBJECTION_THEMES, contexts: HOUSEHOLD, target: CARDS_PER_CATEGORY, allow: ALLOW });
+export const cards = buildCategory({ category: 'objections', prefix: 'o', core: coreObjections, themes: OBJECTION_THEMES, lines: OBJECTION_LINES });
