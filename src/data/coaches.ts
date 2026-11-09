@@ -1,6 +1,6 @@
 export type CoachId =
   | 'mccarthy' | 'cardone' | 'ziglar' | 'voss' | 'miner'
-  | 'belfort' | 'elliott' | 'carnegie' | 'tracy' | 'rackham';
+  | 'belfort' | 'elliott' | 'carnegie' | 'tracy' | 'rackham' | 'taggart';
 
 export interface Coach { id: CoachId; name: string; idea: string }
 
@@ -15,6 +15,7 @@ export const COACHES: Record<CoachId, Coach> = {
   carnegie: { id: 'carnegie', name: 'Dale Carnegie', idea: 'Genuine interest in people; use their name' },
   tracy: { id: 'tracy', name: 'Brian Tracy', idea: 'The person asking questions controls the conversation' },
   rackham: { id: 'rackham', name: 'Neil Rackham (SPIN)', idea: 'Situation, Problem, Implication, Need-payoff questions' },
+  taggart: { id: 'taggart', name: 'Sam Taggart', idea: 'Door-to-door basics: keep it light, lower the pressure, stay curious, keep momentum' },
 };
 
 export const COACH_LIST: Coach[] = Object.values(COACHES);

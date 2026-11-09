@@ -1,0 +1,61 @@
+import type { Context } from './gen';
+
+const c = (tag: string, say: string, reply: string, hint: string): Context => ({ tag, say, reply, hint });
+
+/** Household details Arizona homeowners mention at the door. */
+export const HOUSEHOLD: Context[] = [
+  c('aps', "We're with APS.", "Since you're with APS, we'd look at your actual APS rate plan and usage history.", 'Utility: APS, so the rate plan matters.'),
+  c('srp', "We're on SRP.", "With SRP, plans differ a lot (some have demand charges), so we'd review your exact plan.", 'Utility: SRP, so check the plan type.'),
+  c('tep', "We're with TEP down in Tucson.", "For TEP, we'd first confirm your area is covered, then look at your plan.", 'Utility: TEP, so confirm the service area.'),
+  c('bill-high', 'Our summer bill hits about $400.', "A $400 summer bill is worth a real look, but whether anything helps depends on your usage, roof, and qualification.", 'High summer usage is a real pain point.'),
+  c('bill-swing', 'Our bill is only bad in July and August.', 'Those summer spikes are common here. We can see what your full year actually looks like.', 'Seasonal spikes, so look at the yearly picture.'),
+  c('new-home', 'We just moved in last spring.', 'Congrats on the new place! A full year of usage history helps, so we can see what you have so far.', 'New homeowner with limited bill history.'),
+  c('long-time', "We've lived here twenty years.", "Twenty years! You know this house better than anyone, so your input on the roof and usage matters.", 'Long-time owner; values the home.'),
+  c('retired', "I'm retired.", "Totally understand. Plenty of retirees just want predictability, and nothing gets decided without you being comfortable.", 'Retired; likely wants predictability and no pressure.'),
+  c('fixed-income', "We're on a fixed income.", "On a fixed income, any change has to make real sense on paper, or it's not worth doing.", 'Budget-sensitive.'),
+  c('pool', 'We have a pool.', 'Pool pumps add a lot of usage in summer, so your actual numbers matter here.', 'Pool means higher usage.'),
+  c('ev', 'We just bought an electric car.', "An EV changes your usage a lot, so we'd want to factor that in honestly.", 'EV owner; usage is rising.'),
+  c('wfh', 'I work from home all day.', 'Working from home means the AC runs during peak hours, which can matter depending on your plan.', 'Daytime usage at home.'),
+  c('kids', "We've got three kids.", "With a full house, usage adds up. We'd keep it simple and quick for you.", 'Busy family; time is short.'),
+  c('spouse-bills', 'My husband handles the bills.', "Makes sense. We'd want him there too, since decisions like this should include both of you.", 'Another decision-maker is involved.'),
+  c('spouse-decides', 'My wife makes those calls.', "Totally fair. Let's find a time when she's home so she hears it firsthand.", 'Another decision-maker is involved.'),
+  c('roof-15', 'The roof is about fifteen years old.', 'A roof check is part of the process, so you would know where it stands before anything moves forward.', 'Roof age may affect eligibility.'),
+  c('roof-new', 'We put a new roof on two years ago.', "Good to know. Ask about how penetrations are handled and how your roof warranty is protected.", 'Protective of a new roof.'),
+  c('neighbor', 'My neighbor has panels.', "Nice! Feel free to ask them how it's going. Their experience is worth more than my words.", 'Social proof nearby, good or bad.'),
+  c('relative-sells', 'My brother-in-law sells solar.', "That's great. If you ever compare, just compare everything in writing.", 'Has an insider they trust.'),
+  c('recent-rep', 'A guy came by last week.', "Sorry for the repeat knock! Did anything they said not sit right with you?", 'Recently pitched; may be tired or skeptical.'),
+  c('refi', 'We just refinanced.', 'Understood. Keeping things simple with your finances makes sense, so we would show everything in writing.', 'Finances recently changed.'),
+  c('ac-74', 'We keep the AC at 74 all summer.', "Seventy-four in a Phoenix summer is real usage. That's exactly what we'd look at.", 'Heavy AC usage.'),
+  c('tight', "Money's tight this year.", "I hear you, and I'd never want to add stress. If the numbers don't help, it's not for you.", 'Financial stress.'),
+  c('hoa', "We're in an HOA.", 'Arizona law generally limits HOAs from banning solar, though they can have design rules. The team can help with HOA paperwork.', 'HOA approval worry.'),
+  c('trees', 'There are big trees in the back.', 'Shade matters, and the design team would check it honestly. Sometimes it just isn\'t a fit.', 'Shading could affect the design.'),
+  c('reviews', 'I read a lot of bad reviews online.', "Fair. Check licensing and reviews for any company you talk to, including us.", 'Skeptical from online research.'),
+  c('contractor', "I'm a contractor myself.", "Then you'll appreciate seeing the actual equipment and install details in writing.", 'Technical and detail-oriented.'),
+  c('downsize', 'We might downsize in a few years.', "Good to know. Ask exactly what happens to any agreement if you sell, before you decide anything.", 'Might move; flexibility matters.'),
+  c('parents', 'My parents live with us.', 'A multi-generation household usually means more usage, and more people to keep comfortable.', 'Bigger household.'),
+  c('tou', "We're on the time-of-use plan.", 'On time-of-use, when you use power matters as much as how much. That would be part of the review.', 'Time-of-use plan; peak hours matter.'),
+];
+
+/** Situational details for brush-offs at the door. */
+export const TIMING: Context[] = [
+  c('dog', 'The dog is going nuts.', "No worries, I'll be quick or come back. Your call.", 'Distracted right now.'),
+  c('just-home', 'I just got home from work.', "Long day, I get it. When's a better time to catch you relaxed?", 'Tired; timing may be genuine.'),
+  c('pajamas', "I'm still in my pajamas.", "Ha, no judgment! I'll keep it short or swing by later.", 'Uncomfortable at the door.'),
+  c('game', 'The game is on.', "I won't make you miss it. What's a better evening?", 'Genuine distraction.'),
+  c('meeting', 'I have a meeting in ten minutes.', "I'll be out of your way. Would tomorrow evening work?", 'Hard time limit.'),
+  c('practice', 'The kids have practice tonight.', 'Busy night! What day this week is calmer?', 'Family schedule is packed.'),
+  c('heat', "It's 110 out here.", "Seriously! I'll keep it to thirty seconds or come back when it cools off.", 'Arizona heat; keep it short.'),
+  c('lunch', "I'm on my lunch break.", "Enjoy your lunch. Is after work better?", 'Limited time.'),
+  c('stove', 'Dinner is on the stove.', "Go! Don't burn it. When should I swing back?", 'Real but temporary.'),
+  c('church', "We're heading out to church.", 'Have a great service. Is this afternoon or another day better?', 'Leaving now.'),
+  c('nap', 'I just woke up from a nap.', "Sorry to wake you! I'll be quick or come back later.", 'Groggy; low attention.'),
+  c('visitor', 'My mom is visiting.', "Enjoy your visit! I'll come back another day.", 'Has company.'),
+  c('delivery', "I'm waiting on a delivery.", 'Got it. Thirty seconds, or I can come back. Your choice.', 'Distracted.'),
+  c('contractor-here', "I've got a contractor here right now.", "Busy day! What's a better time?", 'Occupied with another project.'),
+  c('vacation', 'We just got back from vacation.', 'Welcome back! I know the first day home is a lot. When is better?', 'Overwhelmed.'),
+  c('baby', 'The baby is sleeping.', "I'll keep my voice down. When's a better time?", 'Needs quiet; leave quickly.'),
+  c('zoom', "I'm on a Zoom call.", "Sorry! I'll leave you to it. When are you done for the day?", 'Working; genuine.'),
+  c('pickup', 'I have to pick up my kid.', 'Go ahead! Is tomorrow evening better?', 'Leaving now.'),
+  c('long-day', "It's been a long day.", "Totally get it. Let's find a better time when you have the energy.", 'Low energy; timing matters.'),
+  c('eating', "We're about to eat.", "Enjoy dinner! I'll come back. What time works best?", 'Mealtime.'),
+];

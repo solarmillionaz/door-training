@@ -3,7 +3,14 @@ import { Deck, shuffle } from './deck';
 import { applyOutcome, emptyScore, accuracy, attempted } from './scoring';
 import { TiltDetector, screenPitch } from './tilt';
 import { rankTeams, addRound, type TeamEntry } from './leaderboard';
-import { CARDS, cardsFor } from '../data/cards';
+import { cards as OBJ } from '../data/objections';
+import { cards as SMK } from '../data/smokescreens';
+import { cards as CON } from '../data/concerns';
+import { normalize } from '../data/gen';
+import type { Card } from '../data/types';
+const BY: Record<string, Card[]> = { objections: OBJ, smokescreens: SMK, concerns: CON, all: [...OBJ, ...SMK, ...CON] };
+const CARDS = BY.all;
+const cardsFor = (c: string) => BY[c];
 import { COACHES } from '../data/coaches';
 
 const seeded = (s: number) => () => ((s = (s * 16807) % 2147483647) / 2147483647);
@@ -109,8 +116,11 @@ describe('leaderboard', () => {
 });
 
 describe('card data', () => {
-  it('has 30+ cards per category with all fields and a valid coach', () => {
-    for (const cat of ['objections', 'smokescreens', 'concerns'] as const) expect(cardsFor(cat).length).toBeGreaterThanOrEqual(30);
+  it('has at least 1,000 cards per category with all fields and a valid coach', () => {
+    for (const cat of ['objections', 'smokescreens', 'concerns'] as const) {
+      expect(cardsFor(cat).length).toBeGreaterThanOrEqual(1000);
+      expect(cardsFor(cat).every((c) => c.category === cat)).toBe(true);
+    }
     const ids = new Set<string>();
     for (const c of CARDS) {
       for (const k of ['statement', 'classification', 'meaning', 'question', 'response', 'tip'] as const) expect(c[k].length).toBeGreaterThan(3);
@@ -118,14 +128,39 @@ describe('card data', () => {
       expect(ids.has(c.id)).toBe(false); ids.add(c.id);
     }
   });
-  it('spreads coaching across all 10 coaches', () => {
-    expect(new Set(CARDS.map((c) => c.coach)).size).toBe(10);
+  it('includes every example statement from the spec', () => {
+    const all = new Set(CARDS.map((c) => c.statement));
+    for (const s of ["I'm not interested.", "I'm happy with my electric company.", 'Maybe next month.', "I don't make decisions at the door.", 'What if my roof isn\'t eligible?', 'Is the program affiliated with the utility?']) expect(all.has(s)).toBe(true);
   });
-  it('never promises guarantees or free/$0', () => {
+  it('has unique statements with no near-duplicates within a category', () => {
+    for (const cat of ['objections', 'smokescreens', 'concerns'] as const) {
+      const norm = cardsFor(cat).map((c) => normalize(c.statement));
+      expect(new Set(norm).size).toBe(norm.length);
+      const sets = norm.map((n) => new Set(n.split(' ')));
+      let worst = 0;
+      for (let i = 0; i < sets.length; i++) for (let j = i + 1; j < sets.length; j++) {
+        const a = sets[i], b = sets[j];
+        let inter = 0; a.forEach((w) => { if (b.has(w)) inter++; });
+        const jac = inter / (a.size + b.size - inter);
+        if (jac > worst) worst = jac;
+        if (jac >= 0.85) throw new Error(`near-duplicate in ${cat}: "${cardsFor(cat)[i].statement}" ~ "${cardsFor(cat)[j].statement}"`);
+      }
+      expect(worst).toBeLessThan(0.85);
+    }
+  });
+  it('spreads coaching across all 11 coaches', () => {
+    expect(new Set(CARDS.map((c) => c.coach)).size).toBe(11);
+  });
+  it('responses never promise guarantees, savings, or free/$0', () => {
     for (const c of CARDS) {
       const txt = c.response.toLowerCase(); // what the rep actually says
-      expect(txt).not.toMatch(/\bguarantee(d)? (you|savings|approval)|\$0|zero payment|you will save|you'll save/);
-      expect(c.response.toLowerCase()).not.toMatch(/\bit'?s free\b|free solar|free panels/);
+      expect(txt).not.toMatch(/\bguarantee(d)? (you|savings|approval)|\$0|zero payment|zero down|you will save|you'll save|save from day one/);
+      expect(txt).not.toMatch(/\bit'?s free\b|free solar|free panels|no cost to you/);
     }
+  });
+  it('clear refusals always coach leaving, never a follow-up', () => {
+    const refusals = CARDS.filter((c) => /^clear refusal/i.test(c.classification));
+    expect(refusals.length).toBeGreaterThanOrEqual(30);
+    for (const c of refusals) expect(c.tip.toLowerCase()).toMatch(/leave|walk|next door|thank|honor|opt-out/);
   });
 });

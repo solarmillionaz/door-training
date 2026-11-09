@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { CATEGORIES, cardsFor, type Card, type CategoryId } from './data/cards';
+import { CATEGORIES, CARDS_PER_CATEGORY, type Card, type CategoryId } from './data/types';
+import { loadCards, peekCards } from './data/loader';
 import { COACHES, COACH_DISCLAIMER, COACH_LIST, type CoachId } from './data/coaches';
 import { Deck, shuffle } from './lib/deck';
 import { accuracy, applyOutcome, attempted, emptyScore, type Outcome, type Score } from './lib/scoring';
@@ -16,6 +17,18 @@ const catLabel = (c: Cat) => (c === 'all' ? 'Mixed — All Categories' : CATEGOR
 const catShort = (c: Cat) => (c === 'all' ? 'MIXED' : CATEGORIES.find((x) => x.id === c)!.short);
 
 // ---------- small helpers ----------
+function useCards(cat: Cat): Card[] | null {
+  const [cards, setCards] = useState<Card[] | null>(() => peekCards(cat));
+  useEffect(() => {
+    let live = true;
+    setCards(peekCards(cat));
+    loadCards(cat).then((c) => { if (live) setCards(c); }).catch(() => {});
+    return () => { live = false; };
+  }, [cat]);
+  return cards;
+}
+const fmt = (n: number) => n.toLocaleString('en-US');
+
 let audioCtx: AudioContext | null = null;
 function beep(freq: number, ms = 120) {
   try {
@@ -206,8 +219,8 @@ function AddToHome({ compact = false }: { compact?: boolean }) {
 
 function CategoryPicker({ cat, onPick, back }: { cat: Cat; onPick: (c: Cat) => void; back: () => void }) {
   const opts: { id: Cat; label: string; blurb: string; icon: string; n: number }[] = [
-    ...CATEGORIES.map((c) => ({ id: c.id as Cat, label: c.label, blurb: c.blurb, icon: c.icon, n: cardsFor(c.id).length })),
-    { id: 'all', label: 'Mixed', blurb: 'Every card from all three decks.', icon: '🎲', n: cardsFor('all').length },
+    ...CATEGORIES.map((c) => ({ id: c.id as Cat, label: c.label, blurb: c.blurb, icon: c.icon, n: CARDS_PER_CATEGORY })),
+    { id: 'all', label: 'Mixed', blurb: 'Every card from all three decks.', icon: '🎲', n: CARDS_PER_CATEGORY * 3 },
   ];
   return (
     <Shell onBack={back} title="Choose Category">
@@ -219,7 +232,7 @@ function CategoryPicker({ cat, onPick, back }: { cat: Cat; onPick: (c: Cat) => v
             <div className="text-4xl" aria-hidden>{o.icon}</div>
             <div className="font-display text-2xl uppercase mt-2">{o.label}</div>
             <div className={`${cat === o.id ? 'text-navy/80' : 'text-white/70'}`}>{o.blurb}</div>
-            <div className={`mt-2 text-sm font-bold ${cat === o.id ? 'text-navy' : 'text-gold'}`}>{o.n} cards</div>
+            <div className={`mt-2 text-sm font-bold ${cat === o.id ? 'text-navy' : 'text-gold'}`}>{fmt(o.n)} cards</div>
           </button>
         ))}
       </div>
@@ -253,8 +266,9 @@ function Setup({ cat, seconds, setSeconds, go, back, mode, teamName }: { cat: Ca
   );
 }
 
-function Ready({ onStart, back }: { onStart: (tilt: boolean) => void; back: () => void }) {
+function Ready({ onStart, back, cat }: { onStart: (tilt: boolean) => void; back: () => void; cat: Cat }) {
   const hasMotion = motionSupported();
+  const loaded = !!useCards(cat);
   const [denied, setDenied] = useState(false);
   const startTilt = async () => {
     const ok = await requestMotionPermission(); // must be first await in the tap for iOS
@@ -272,8 +286,9 @@ function Ready({ onStart, back }: { onStart: (tilt: boolean) => void; back: () =
           <span className="bg-stop/20 border border-stop text-white px-3 py-2 rounded-xl">⬇ TILT DOWN = PASS</span>
         </div>
         <div className="w-full max-w-sm flex flex-col gap-3 mt-2">
-          {hasMotion && <Btn onClick={startTilt} className="text-2xl py-5">{needsMotionPermission() ? 'Enable Tilt & Start' : 'Start with Tilt'}</Btn>}
-          <Btn variant="dark" onClick={() => onStart(false)}>Buttons / Swipe Only</Btn>
+          {!loaded && <p role="status" className="text-white/70">Loading cards…</p>}
+          {hasMotion && <Btn onClick={startTilt} disabled={!loaded} className="text-2xl py-5">{needsMotionPermission() ? 'Enable Tilt & Start' : 'Start with Tilt'}</Btn>}
+          <Btn variant="dark" disabled={!loaded} onClick={() => onStart(false)}>Buttons / Swipe Only</Btn>
         </div>
         {denied && <p role="alert" className="text-stop font-bold">Motion access was denied. Use buttons, or allow Motion &amp; Orientation access in Safari settings and reload.</p>}
         <p className="text-xs text-white/50 max-w-md">Tip: on iPhone, the browser can’t go true full-screen — use “Add to Home Screen” for a full-screen app feel.</p>
@@ -304,8 +319,8 @@ function Countdown({ onDone, detector, tiltOn }: { onDone: () => void; detector:
   );
 }
 
-function Play({ cat, seconds, tiltOn, detector, onEnd, teamName }: { cat: Cat; seconds: number; tiltOn: boolean; detector: TiltDetector; onEnd: (s: Score, log: { card: Card; outcome: Outcome }[], cleared: boolean) => void; teamName?: string }) {
-  const [deck] = useState(() => new Deck(cardsFor(cat)));
+function Play({ cat, cards, seconds, tiltOn, detector, onEnd, teamName }: { cat: Cat; cards: Card[]; seconds: number; tiltOn: boolean; detector: TiltDetector; onEnd: (s: Score, log: { card: Card; outcome: Outcome }[], cleared: boolean) => void; teamName?: string }) {
+  const [deck] = useState(() => new Deck(cards));
   const [card, setCard] = useState<Card | null>(() => deck.next());
   const [score, setScore] = useState<Score>(emptyScore);
   const [flash, setFlash] = useState<{ o: Outcome; k: number } | null>(null);
@@ -485,7 +500,8 @@ function Results({ score, best, isNew, cleared, log, mode, teamName, nextTeam, o
 function Practice({ back }: { back: () => void }) {
   const [cat, setCat] = useState<Cat>('all');
   const [coach, setCoach] = useState<CoachId | 'all'>('all');
-  const list = useMemo(() => shuffle(cardsFor(cat).filter((c) => coach === 'all' || c.coach === coach)), [cat, coach]);
+  const all = useCards(cat);
+  const list = useMemo(() => shuffle((all ?? []).filter((c) => coach === 'all' || c.coach === coach)), [all, coach]);
   const [i, setI] = useState(0);
   const [shown, setShown] = useState(false);
   useEffect(() => { setI(0); setShown(false); }, [list]);
@@ -508,7 +524,7 @@ function Practice({ back }: { back: () => void }) {
           </select>
         </label>
       </div>
-      {!card ? <p className="text-white/70">No cards match this filter.</p> : (
+      {!all ? <p role="status" className="text-white/70">Loading cards…</p> : !card ? <p className="text-white/70">No cards match this filter.</p> : (
         <>
           <div className="text-white/50 text-sm text-right mb-1" data-testid="practice-count">{i + 1} / {list.length}</div>
           <div key={card.id} className="rounded-3xl bg-gradient-to-b from-navy-3 to-navy-2 border-2 border-gold/60 card-shadow p-6 text-center anim-pop">
@@ -651,9 +667,9 @@ export default function App() {
     case 'howto': return <HowTo back={() => go('menu')} />;
     case 'category': return <CategoryPicker cat={cat} onPick={(c) => { setCat(c); if (catReturn === 'menu') setMode('solo'); setScreen(catReturn === 'menu' ? 'setup' : catReturn); window.scrollTo(0, 0); }} back={() => go(catReturn)} />;
     case 'setup': return <Setup cat={cat} seconds={seconds} setSeconds={setSeconds} go={go} back={() => go(mode === 'team' ? 'team' : 'menu')} mode={mode} teamName={mode === 'team' ? teamUp : undefined} />;
-    case 'ready': return <Ready onStart={start} back={() => go('setup')} />;
+    case 'ready': return <Ready onStart={start} back={() => go('setup')} cat={cat} />;
     case 'countdown': return <Countdown key={roundKey} onDone={onCountdownDone} detector={detector} tiltOn={tiltOn} />;
-    case 'play': return <Play key={roundKey} cat={cat} seconds={seconds} tiltOn={tiltOn} detector={detector} onEnd={onEnd} teamName={mode === 'team' ? teamUp : undefined} />;
+    case 'play': return <Play key={roundKey} cat={cat} cards={peekCards(cat) ?? []} seconds={seconds} tiltOn={tiltOn} detector={detector} onEnd={onEnd} teamName={mode === 'team' ? teamUp : undefined} />;
     case 'results': return result && (
       <Results {...result} mode={mode} teamName={mode === 'team' ? comp?.teams[(comp.turn - 1 + comp.teams.length) % comp.teams.length].name : undefined}
         nextTeam={mode === 'team' ? teamUp : undefined}

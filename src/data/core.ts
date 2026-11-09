@@ -1,24 +1,5 @@
+import type { Card, CategoryId } from './types';
 import type { CoachId } from './coaches';
-
-export type CategoryId = 'objections' | 'smokescreens' | 'concerns';
-
-export interface Card {
-  id: string;
-  category: CategoryId;
-  statement: string;
-  classification: string;
-  meaning: string;
-  question: string;
-  response: string;
-  tip: string;
-  coach: CoachId;
-}
-
-export const CATEGORIES: { id: CategoryId; label: string; short: string; blurb: string; icon: string }[] = [
-  { id: 'objections', label: 'Objections', short: 'OBJECTIONS', blurb: 'Pushback on solar, cost, trust, or the roof.', icon: '🛑' },
-  { id: 'smokescreens', label: 'Smokescreens', short: 'SMOKESCREENS', blurb: 'Brush-offs vs. real timing issues vs. clear refusals.', icon: '💨' },
-  { id: 'concerns', label: 'Real Concerns', short: 'CONCERNS', blurb: 'Honest questions Arizona homeowners ask.', icon: '❓' },
-];
 
 type Row = [statement: string, classification: string, meaning: string, question: string, response: string, tip: string, coach: CoachId];
 
@@ -527,11 +508,6 @@ const concerns: Row[] = [
     "Need-payoff: ask what avoiding peak charges would mean to them.", 'rackham'],
 ];
 
-export const CARDS: Card[] = [
-  ...make('objections', 'o', objections),
-  ...make('smokescreens', 's', smokescreens),
-  ...make('concerns', 'c', concerns),
-];
-
-export const cardsFor = (cat: CategoryId | 'all'): Card[] =>
-  cat === 'all' ? CARDS : CARDS.filter((c) => c.category === cat);
+export const coreObjections = make('objections', 'o', objections);
+export const coreSmokescreens = make('smokescreens', 's', smokescreens);
+export const coreConcerns = make('concerns', 'c', concerns);

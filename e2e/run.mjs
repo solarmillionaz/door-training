@@ -37,6 +37,7 @@ const btn = (page, name) => page.getByRole('button', { name, exact: false }).fir
   await btn(page, 'Choose Category').click();
   await page.clock.runFor(800);
   await page.screenshot({ path: `${SHOTS}/03-category.png`, animations: 'disabled' });
+  ok((await page.getByText('1,000 cards').count()) === 3 && (await page.getByText('3,000 cards').count()) === 1, 'category picker shows 1,000 per category');
   await page.getByRole('button', { name: /Smokescreens/ }).click();
   ok(await page.getByText('Game Setup').isVisible(), 'picking category opens setup');
   ok(await page.getByText('Smokescreens').first().isVisible(), 'category shown in setup');
@@ -171,6 +172,8 @@ const btn = (page, name) => page.getByRole('button', { name, exact: false }).fir
   console.log('Practice mode');
   const page = await newPage();
   await btn(page, 'Practice Mode').click();
+  await page.getByTestId('practice-count').waitFor();
+  ok((await page.getByTestId('practice-count').innerText()).endsWith('/ 3000'), 'practice loads all 3,000 cards');
   ok(!(await page.getByTestId('coaching').isVisible().catch(() => false)), 'coaching hidden before attempt');
   await btn(page, 'Reveal Coaching').click();
   const txt = await page.getByTestId('coaching').innerText();
@@ -180,8 +183,8 @@ const btn = (page, name) => page.getByRole('button', { name, exact: false }).fir
   await page.getByTestId('coach-filter').selectOption('voss');
   const count = await page.getByTestId('practice-count').innerText();
   const n = Number(count.split('/')[1]);
-  ok(n > 0 && n < 20, `coach filter narrows cards (${count})`);
-  for (let i = 0; i < n; i++) {
+  ok(n > 100 && n < 3000, `coach filter narrows cards (${count})`);
+  for (let i = 0; i < 5; i++) {
     await btn(page, 'Reveal Coaching').click();
     ok((await page.getByTestId('coaching').innerText()).includes('Chris Voss'), `card ${i + 1} inspired by Chris Voss`);
     await btn(page, 'Next').click();
