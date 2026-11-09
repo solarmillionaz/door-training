@@ -161,6 +161,14 @@ function HowTo({ back }: { back: () => void }) {
         </ul>
         <p className="mt-4 text-xs text-white/60 italic">{COACH_DISCLAIMER}</p>
       </section>
+      <section className="mt-6 bg-navy-2 rounded-2xl p-4 border border-white/10">
+        <h3 className="font-display text-gold text-lg mb-2">For trainers</h3>
+        <div className="flex flex-wrap gap-4 text-gold underline underline-offset-4 font-bold">
+          <a href="./qr.png" download="sales-heads-up-qr.png">QR code (PNG)</a>
+          <a href="./trainer-slide.png" download="sales-heads-up-slide.png">Trainer slide (PNG)</a>
+          <a href="./trainer-slide.pdf" download="sales-heads-up-slide.pdf">Trainer slide (PDF)</a>
+        </div>
+      </section>
       <p className="mt-6 text-xs text-white/50">Tilt needs motion sensors (iPhone asks for permission once). No sensors? Use the buttons, swipes, or arrow keys. Data stays on this device — no account, no login.</p>
     </Shell>
   );
