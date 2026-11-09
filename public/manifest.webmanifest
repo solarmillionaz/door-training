@@ -1,1 +1,19 @@
-{ "name": "SALES HEADS UP! — AZ Power Program", "short_name": "Heads Up", "start_url": "./", "display": "fullscreen", "orientation": "any", "background_color": "#0B1220", "theme_color": "#0B1220", "icons": [{ "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml" }] }
+{
+  "id": "./",
+  "name": "DOOR TRAINING! — AZ Power Program",
+  "short_name": "Door Training",
+  "description": "Door-to-door solar sales training game: Objections • Smokescreens • Concerns.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "any",
+  "background_color": "#0B1220",
+  "theme_color": "#0B1220",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

@@ -64,7 +64,7 @@ function Btn({ children, onClick, variant = 'gold', className = '', ...rest }: R
 function Title({ small = false }: { small?: boolean }) {
   return (
     <div className="text-center select-none">
-      <h1 className={`font-display text-gold glow leading-none ${small ? 'text-4xl sm:text-5xl' : 'text-5xl sm:text-7xl'}`}>SALES<br className="sm:hidden" /> HEADS UP!</h1>
+      <h1 className={`font-display text-gold glow leading-none ${small ? 'text-4xl sm:text-5xl' : 'text-5xl sm:text-7xl'}`}>DOOR<br className="sm:hidden" /> TRAINING!</h1>
       <p className={`font-display tracking-[0.18em] text-white mt-3 ${small ? 'text-[11px] sm:text-sm' : 'text-xs sm:text-base'}`}>OBJECTIONS • SMOKESCREENS • CONCERNS</p>
     </div>
   );
@@ -88,7 +88,7 @@ function ShareButton({ className = '' }: { className?: string }) {
   const [msg, setMsg] = useState('');
   const url = typeof location !== 'undefined' ? location.origin + location.pathname : '';
   const share = async () => {
-    const data = { title: 'SALES HEADS UP! — AZ Power Program', text: 'Think Fast. Respond Better. Win More Deals. Play the solar sales training game:', url };
+    const data = { title: 'DOOR TRAINING! — AZ Power Program', text: 'Think Fast. Respond Better. Win More Deals. Play DOOR TRAINING!, the AZ Power Program door-to-door training game:', url };
     try {
       if (navigator.share) { await navigator.share(data); return; }
     } catch (e) { if ((e as Error).name === 'AbortError') return; }
@@ -118,7 +118,8 @@ function Menu({ go, cat, seconds, hasComp }: { go: (s: Screen, m?: Mode) => void
         <Btn variant="dark" onClick={() => go('practice')}>Practice Mode</Btn>
         <Btn variant="go" onClick={() => go('team', 'team')}>🏆 Team Competition{hasComp ? ' (resume)' : ''}</Btn>
         <ShareButton />
-        <a href="./qr.png" download="sales-heads-up-qr.png" className="text-center text-sm text-gold underline underline-offset-4">Download QR code (PNG)</a>
+        <AddToHome compact />
+        <a href="./qr.png" download="door-training-qr.png" className="text-center text-sm text-gold underline underline-offset-4">Download QR code (PNG)</a>
       </div>
       <p className="text-sm text-white/50 text-center">Category: <b className="text-white/80">{catLabel(cat)}</b> · {seconds}s · No login needed</p>
     </div>
@@ -161,16 +162,45 @@ function HowTo({ back }: { back: () => void }) {
         </ul>
         <p className="mt-4 text-xs text-white/60 italic">{COACH_DISCLAIMER}</p>
       </section>
+      <AddToHome />
       <section className="mt-6 bg-navy-2 rounded-2xl p-4 border border-white/10">
         <h3 className="font-display text-gold text-lg mb-2">For trainers</h3>
         <div className="flex flex-wrap gap-4 text-gold underline underline-offset-4 font-bold">
-          <a href="./qr.png" download="sales-heads-up-qr.png">QR code (PNG)</a>
-          <a href="./trainer-slide.png" download="sales-heads-up-slide.png">Trainer slide (PNG)</a>
-          <a href="./trainer-slide.pdf" download="sales-heads-up-slide.pdf">Trainer slide (PDF)</a>
+          <a href="./qr.png" download="door-training-qr.png">QR code (PNG)</a>
+          <a href="./trainer-slide.png" download="door-training-slide.png">Trainer slide (PNG)</a>
+          <a href="./trainer-slide.pdf" download="door-training-slide.pdf">Trainer slide (PDF)</a>
         </div>
       </section>
       <p className="mt-6 text-xs text-white/50">Tilt needs motion sensors (iPhone asks for permission once). No sensors? Use the buttons, swipes, or arrow keys. Data stays on this device — no account, no login.</p>
     </Shell>
+  );
+}
+
+function AddToHome({ compact = false }: { compact?: boolean }) {
+  if (compact) {
+    return (
+      <details className="w-full max-w-sm bg-navy-2 border border-white/10 rounded-2xl px-4 py-3 text-sm" data-testid="a2hs-tip">
+        <summary className="font-display text-gold cursor-pointer">📲 Add to Home Screen</summary>
+        <p className="mt-2 text-white/80"><b>iPhone (Safari):</b> tap Share <span aria-hidden>⬆️</span> → “Add to Home Screen” → Add.</p>
+        <p className="mt-1 text-white/80"><b>Android (Chrome):</b> tap the ⋮ menu → “Add to Home screen” / “Install app”.</p>
+      </details>
+    );
+  }
+  return (
+    <section className="mt-6 bg-navy-2 rounded-2xl p-4 border border-gold/30" data-testid="a2hs">
+      <h3 className="font-display text-gold text-lg mb-2">📲 Add to Home Screen</h3>
+      <p className="text-white/70 text-sm mb-3">Opens full-screen like an app — best for tilt play. No app store, no login.</p>
+      <div className="grid sm:grid-cols-2 gap-3">
+        <div className="bg-navy-3 rounded-xl p-3">
+          <div className="font-display text-white mb-1">iPhone · Safari</div>
+          <ol className="list-decimal pl-5 text-white/85 space-y-0.5"><li>Tap <b>Share</b> (square with ⬆️ arrow)</li><li>Tap <b>“Add to Home Screen”</b></li><li>Tap <b>Add</b></li></ol>
+        </div>
+        <div className="bg-navy-3 rounded-xl p-3">
+          <div className="font-display text-white mb-1">Android · Chrome</div>
+          <ol className="list-decimal pl-5 text-white/85 space-y-0.5"><li>Tap the <b>⋮</b> menu (top right)</li><li>Tap <b>“Add to Home screen”</b> or <b>“Install app”</b></li><li>Confirm <b>Add / Install</b></li></ol>
+        </div>
+      </div>
+    </section>
   );
 }
 

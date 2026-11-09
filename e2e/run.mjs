@@ -20,7 +20,9 @@ const btn = (page, name) => page.getByRole('button', { name, exact: false }).fir
 {
   console.log('Menu / How to / Category');
   const page = await newPage();
-  await page.getByText('SALES HEADS UP!').first().waitFor();
+  await page.getByText('TRAINING!').first().waitFor();
+  ok(await page.title() === 'DOOR TRAINING! — AZ Power Program', 'page title renamed');
+  ok(await page.getByTestId('a2hs-tip').isVisible(), 'menu add-to-home tip');
   ok(await page.getByText('OBJECTIONS • SMOKESCREENS • CONCERNS').isVisible(), 'menu tagline');
   ok(await page.getByText('Win More Deals.').isVisible(), 'subtitle');
   for (const b of ['Start Game', 'How to Play', 'Choose Category', 'Practice Mode']) ok(await btn(page, b).isVisible(), `button ${b}`);
@@ -29,6 +31,7 @@ const btn = (page, name) => page.getByRole('button', { name, exact: false }).fir
   await btn(page, 'How to Play').click();
   ok(await page.getByText('not affiliated with or endorsed by them').isVisible(), 'coach disclaimer in How to Play');
   ok(await page.getByText('Chris Voss').isVisible(), 'coach list');
+  ok((await page.getByTestId('a2hs').innerText()).includes('Add to Home Screen'), 'how-to add-to-home section');
   await page.screenshot({ path: `${SHOTS}/02-howto.png`, fullPage: true, animations: 'disabled' });
   await btn(page, 'Back').click();
   await btn(page, 'Choose Category').click();

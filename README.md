@@ -1,8 +1,8 @@
-# SALES HEADS UP! — AZ Power Program
+# DOOR TRAINING! — AZ Power Program
 
 Mobile-first forehead-guessing training game for door-to-door solar teams: Objections • Smokescreens • Concerns.
 
-Live: https://solarmillionaz.github.io/sales-heads-up/
+Live: https://solarmillionaz.github.io/door-training/
 
 - Vite + React + TypeScript + Tailwind CSS, static site, no login (localStorage only)
 - `npm run dev` / `npm run build` / `npx vitest run` / `node e2e/run.mjs http://localhost:4173/`
